@@ -5,6 +5,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by kaiwen on 27/02/2017.
  * http://www.runoob.com/mongodb/mongodb-query.html
@@ -59,12 +63,28 @@ public class MongoConnector {
         return database;
     }
 
-    public MongoClient getClient(){
+    public static MongoClient getClient(){
         MongoClient client = new MongoClient("172.16.2.31", 27017);
         return client;
     }
 
 
+    public static void insertBatch(String dbName, String collectionName, List<Map> mapList) {
+
+
+        MongoDatabase db = getClient().getDatabase(dbName);
+        MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+
+        List<Document> documentList = new ArrayList<>(mapList.size());
+        mapList.forEach((map)->{
+            org.bson.Document document = new org.bson.Document();
+            document.putAll(map);
+            documentList.add(document);
+        });
+
+        collection.insertMany(documentList);
+
+    }
 
 
 

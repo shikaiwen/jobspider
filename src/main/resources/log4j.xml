@@ -79,7 +79,7 @@
 
     <!-- 根logger的设置 -->
     <root>
-        <priority value="DEBUG"/>
+        <priority value="INFO"/>
         <appender-ref ref="stdout"/>
         <appender-ref ref="FILE"/>
     </root>
