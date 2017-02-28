@@ -17,12 +17,40 @@ import java.util.*;
  */
 public class ProvinceCityCountySpider {
 
+
+    static class MyObj{
+        String tt = "dsafjkadsjklfjklasdjfkljas";
+        Object [] t2 = {"34","34"};
+    }
+
     public static void main(String[] args) {
-        ProvinceCityCountySpider spider = new ProvinceCityCountySpider();
+
+        List list = new ArrayList(2);
+        list.add(new Object());
+        list.add(new Object());
+
+
+
+//        int enlargeCnt = 0;
+//        int startVal = 9;
+//        for(int i = 0 ;i < 25; i ++){
+//            startVal = startVal + (startVal >> 1);
+//            System.out.println(startVal);
+//
+//        }
+        long start = System.currentTimeMillis();
+        List data = new ArrayList();
+        for(int i = 0 ;i < 1000000; i++) {
+            boolean add = data.add(new MyObj());
+        }
+        long end = System.currentTimeMillis();
+
+        System.out.println(end - start);
+//        ProvinceCityCountySpider spider = new ProvinceCityCountySpider();
+//        spider.insertData();
+
 //        Map map = spider.getProvince().get(0);
 //        spider.getCityList(map.get("nextUrl").toString());
-
-        spider.insertData();
     }
 
 
