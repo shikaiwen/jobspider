@@ -40,7 +40,9 @@ public class CsdnBlogDetailProcessor implements PageProcessor {
 
 
             Document document = page.getHtml().getDocument();
-            Elements commentList = document.select("#newcomments itemlist");//.select(".comment_item");
+            Elements commentList = document.select("#newcomments .itemlist li");//.select(".comment_item");
+
+            //获取评论有问题，直接通过url访问：http://blog.csdn.net/huanghm88/comment/list/3965218?page=1
             commentList.forEach((elt)->{
 
                 String username = elt.select(".username").text();
