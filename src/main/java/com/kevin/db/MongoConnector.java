@@ -3,7 +3,10 @@ package com.kevin.db;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,10 +87,8 @@ public class MongoConnector {
 
         collection.insertMany(documentList);
 
+
     }
-
-
-
 
 
     public void insert(){
