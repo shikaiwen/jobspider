@@ -1,6 +1,5 @@
 package com.kevin.com.kevin.spider.webmagic;
 
-import com.kevin.selenium.WebDriverTest;
 import us.codecraft.webmagic.Spider;
 
 /**

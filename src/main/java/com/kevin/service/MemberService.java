@@ -11,7 +11,10 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.BasicBSONObject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import us.codecraft.webmagic.selector.Json;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by kaiwen on 01/03/2017.
@@ -56,5 +59,27 @@ public class MemberService {
 
 
     }
+
+    /**
+     * 保存爬取到的评论
+     */
+    public void saveComment(List<Map> commentList) {
+
+        MongoClient client = MongoConnector.getClient();
+        MongoDatabase database = client.getDatabase("test");
+        MongoCollection<Document> commentCollection = database.getCollection("csdn_comment");
+
+        List<Document> saveDocList = new ArrayList<>();
+        commentList.forEach((cmt)->{
+//            BasicBSONObject doc = new BasicBSONObject();
+            Document doc = new Document();
+            doc.putAll(cmt);
+            saveDocList.add(doc);
+        });
+
+        commentCollection.insertMany(saveDocList);
+
+    }
+
 
 }
