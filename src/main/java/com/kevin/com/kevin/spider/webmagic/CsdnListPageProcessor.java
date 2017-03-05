@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import static us.codecraft.webmagic.selector.Selectors.$;
-import static us.codecraft.webmagic.selector.Selectors.xpath;
 
 /**
  * Created by kaiwen on 28/02/2017.
@@ -19,6 +18,10 @@ import static us.codecraft.webmagic.selector.Selectors.xpath;
 public class CsdnListPageProcessor implements PageProcessor {
 
     private Site site = Site.me().setRetryTimes(3).setSleepTime(1000).setTimeOut(10000);
+
+
+
+
 
     @Override
     public void process(Page page) {

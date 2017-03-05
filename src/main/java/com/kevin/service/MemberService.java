@@ -25,6 +25,14 @@ import java.util.Map;
 public class MemberService {
 
 
+    /**
+     * 保存爬取的用户名到db中，这里是多个爬虫调用，需要程序过滤掉重复的用户
+     */
+    public void saveUserName(List<String> userName){
+
+
+    }
+
 
     /**
      * 获取一个用户并开始爬取
@@ -32,6 +40,13 @@ public class MemberService {
      * @return
      */
     public BlogMember getMemberToStartSpider(){
+        if(true){
+            BlogMember blogMember = new BlogMember();
+            blogMember.setAddress("http://blog.csdn.net/yuanmeng001");
+            blogMember.setAddress("http://blog.csdn.net/huanghm88");
+
+            return  blogMember;
+        }
 
         MongoClient client = MongoConnector.getClient();
 
