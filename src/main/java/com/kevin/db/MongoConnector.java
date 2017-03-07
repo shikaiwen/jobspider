@@ -54,14 +54,46 @@ import java.util.Map;
  */
 public class MongoConnector {
 
+    public static final String DB = "test";
+    public static final Integer PORT = 27017;
+    public static final String HOST = "172.16.2.31";
+
+
+
     public static void main(String[] args) {
 //        getDB("test");
         new MongoConnector().insert();
     }
 
+    public static final String ARTICLE_COLS = "article";
+    public static final String COMMENT_COLS = "article";
+
+
+    public static MongoCollection<Document> getArticleCols(){
+
+        return getCollection(ARTICLE_COLS);
+
+    }
+
+    public static MongoCollection<Document> getCommentCols(){
+
+        return getCollection(COMMENT_COLS);
+
+    }
+
+
+    public static MongoCollection<Document> getCollection(String colName){
+        MongoClient client = getClient();
+        MongoDatabase database = client.getDatabase(DB);
+        MongoCollection<Document> collection = database.getCollection(colName);
+        return collection;
+    }
+
+
+
     public static MongoDatabase getDB(String db){
 //        Mongo mongo = new Mongo("localhost", 27017);
-        MongoClient client = new MongoClient("172.16.2.31", 27017);
+        MongoClient client = new MongoClient(HOST, PORT);
         MongoDatabase database = client.getDatabase(db);
         return database;
     }

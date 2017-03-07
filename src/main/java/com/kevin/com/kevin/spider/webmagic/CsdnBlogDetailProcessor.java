@@ -64,26 +64,8 @@ public class CsdnBlogDetailProcessor implements PageProcessor {
 
             page.putField("commentItem",commentList);
 
-//            Document document = page.getHtml().getDocument();
-//            Elements commentList = document.select("#newcomments .itemlist li");//.select(".comment_item");
-//            commentList.forEach((elt)->{
-//                String username = elt.select(".username").text();
-//                String ptime = elt.select(".ptime").text();
-//                String commentBody = elt.select(".comment_body").text();
-//                String s = username + ", " + ptime + ", " + commentBody;
-//                System.out.println(s);
-//            });
 
         }
-
-
-
-
-
-
-
-
-//        page.getHtml().$("#comment_list .comment_item");
 
     }
 

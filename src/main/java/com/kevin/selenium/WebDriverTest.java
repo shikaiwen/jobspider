@@ -7,6 +7,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +27,8 @@ public class WebDriverTest {
 //        driver.get("http://blog.csdn.net/peoplelist.html?channelid=0&page=1");
 
         driver.get("http://blog.csdn.net/experts.html#list");
+        Set <String> windowHandles = driver.getWindowHandles();
+
         String text = driver.findElement(By.cssSelector(".page_nav > span")).getText();
         String pattern = "[1-9]{1,}";
 

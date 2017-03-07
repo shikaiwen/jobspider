@@ -25,7 +25,6 @@ public class CsdnExpert implements PageProcessor {
 
     public static void main(String[] args) {
 
-
         Spider spider = Spider.create(new CsdnExpert());
 
         int pageCount = WebDriverTest.getPageCount();
@@ -67,13 +66,13 @@ public class CsdnExpert implements PageProcessor {
 //            item.xpath("dt[1]")
 
             Map map = new HashMap();
-            map.put("article_cnt", articleCnt);
-            map.put("view_cnt", viewCnt);
+            map.put("articleCnt", articleCnt);
+            map.put("viewCnt", viewCnt);
             map.put("address", address);
-            map.put("blog_url", blogHref);
-            map.put("icon_url", iconUrl);
+            map.put("blogUrl", blogHref);
+            map.put("iconUrl", iconUrl);
             map.put("source", "1"); // 1: from csdn
-
+            map.put("username", blogHref.substring(blogHref.lastIndexOf("/") + 1));
             mapList.add(map);
         });
 

@@ -33,6 +33,37 @@ public class MemberService {
 
     }
 
+    static MemberService instance = null;
+    public static MemberService getInstance(){
+        if (instance == null) {
+            instance = new MemberService();
+        }
+        return instance;
+    }
+
+
+    public List<BlogMember> getAllExpertBlog(){
+        MongoClient client = MongoConnector.getClient();
+
+        MongoDatabase database = client.getDatabase("test");
+        MongoCollection<Document> csdn_expert = database.getCollection("csdn_expert");
+
+        BasicBSONObject query = new BasicBSONObject();
+
+        Document bson = new Document();
+        FindIterable<Document> documents = csdn_expert.find(bson).limit(10);
+
+        MongoCursor<Document> iter = documents.iterator();
+
+        List<BlogMember> expertBlogList = new ArrayList<>();
+        while (iter.hasNext()) {
+            Document next = iter.next();
+            BlogMember blogMember = JSON.parseObject(JSON.toJSONString(next), BlogMember.class);
+            expertBlogList.add(blogMember);
+        }
+
+        return expertBlogList;
+    }
 
     /**
      * 获取一个用户并开始爬取
@@ -40,16 +71,14 @@ public class MemberService {
      * @return
      */
     public BlogMember getMemberToStartSpider(){
-        if(true){
-            BlogMember blogMember = new BlogMember();
-            blogMember.setAddress("http://blog.csdn.net/yuanmeng001");
-            blogMember.setAddress("http://blog.csdn.net/huanghm88");
-
-            return  blogMember;
-        }
+//        if(true){
+//            BlogMember blogMember = new BlogMember();
+//            blogMember.setAddress("http://blog.csdn.net/yuanmeng001");
+//            blogMember.setAddress("http://blog.csdn.net/huanghm88");
+//            return  blogMember;
+//        }
 
         MongoClient client = MongoConnector.getClient();
-
 
         MongoDatabase database = client.getDatabase("test");
         MongoCollection<Document> csdn_expert = database.getCollection("csdn_expert");

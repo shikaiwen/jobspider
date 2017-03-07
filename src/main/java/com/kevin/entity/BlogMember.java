@@ -16,6 +16,7 @@ public class BlogMember {
 
     private Integer articleCnt;
     private Integer viewCnt;
+    private String blogUrl;
 
     // 1:csdn
     private String source;
