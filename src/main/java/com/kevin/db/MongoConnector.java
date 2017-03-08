@@ -66,19 +66,15 @@ public class MongoConnector {
     }
 
     public static final String ARTICLE_COLS = "article";
-    public static final String COMMENT_COLS = "article";
+    public static final String COMMENT_COLS = "comments";
 
 
     public static MongoCollection<Document> getArticleCols(){
-
         return getCollection(ARTICLE_COLS);
 
     }
-
     public static MongoCollection<Document> getCommentCols(){
-
         return getCollection(COMMENT_COLS);
-
     }
 
 

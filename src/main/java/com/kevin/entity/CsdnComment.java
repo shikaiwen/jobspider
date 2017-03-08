@@ -17,6 +17,9 @@ public class CsdnComment {
     private String UserName;
     private String Userface;
 
+    //是否已经提取用户
+    private int authorExtracted;
+
     public String get_id() {
         return _id;
     }
@@ -95,5 +98,13 @@ public class CsdnComment {
 
     public void setUserface(String userface) {
         Userface = userface;
+    }
+
+    public int getAuthorExtracted() {
+        return authorExtracted;
+    }
+
+    public void setAuthorExtracted(int authorExtracted) {
+        this.authorExtracted = authorExtracted;
     }
 }

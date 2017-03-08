@@ -9,6 +9,8 @@ import com.kevin.db.MongoConnector;
 import com.kevin.entity.BlogArticle;
 import com.kevin.entity.CsdnComment;
 import com.kevin.utils.JsoupOk;
+import com.mongodb.Block;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -81,6 +83,23 @@ public class ArticleService {
         collection.insertMany(docList);
     }
 
+
+    /**
+     * 查询用来获取用户名的评论
+     * authorExtracted=0的记录
+     */
+    public void getCommentToExtractUser(){
+
+        MongoCollection <org.bson.Document> commentCols = MongoConnector.getCommentCols();
+        org.bson.Document bson = new org.bson.Document();
+        bson.put("authorExtracted", 0);
+        FindIterable <org.bson.Document> documents = commentCols.find(bson);
+        documents.forEach((Block<? super org.bson.Document>) (doc)->{
+
+        });
+
+
+    }
 
     public List<BlogArticle> getAllArticleByUserName(String username){
 

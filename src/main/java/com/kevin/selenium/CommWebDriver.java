@@ -6,8 +6,11 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,21 +18,37 @@ import java.util.regex.Pattern;
  * Created by kaiwen on 28/02/2017.
  * 小坦克：http://www.cnblogs.com/TankXiao/p/5252754.html
  */
-public class WebDriverTest {
+public class CommWebDriver {
 
     public static void main(String[] args) {
 
-        getPageCount();
+        getCsdnExpertPageCount();
     }
 
-    public static int getPageCount(){
+    public static int getCsdnExpertPageCount(){
         WebDriver driver = new ChromeDriver();
 //        driver.get("http://blog.csdn.net/peoplelist.html?channelid=0&page=1");
 
         driver.get("http://blog.csdn.net/experts.html#list");
-        Set <String> windowHandles = driver.getWindowHandles();
+//        driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
+//        Set <String> windowHandles = driver.getWindowHandles();
+//        driver.findElement(By.cssSelector(".page_nav > span")).isDisplayed()
 
-        String text = driver.findElement(By.cssSelector(".page_nav > span")).getText();
+        WebDriverWait wait = new WebDriverWait(driver, 10);
+//        WebElement element = driver.findElement(By.cssSelector(".page_nav > span"));
+        WebElement element = null;
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".page_nav > span")));
+            element = driver.findElement(By.cssSelector(".page_nav > span"));
+        } catch (Exception e) {
+            return 0;
+        }
+
+//        if(driver.findElement(By.cssSelector(".page_nav > span")).isDisplayed()){
+//        }
+
+        String text = element.getText();
+
         String pattern = "[1-9]{1,}";
 
         Matcher matcher = Pattern.compile(pattern).matcher(text);

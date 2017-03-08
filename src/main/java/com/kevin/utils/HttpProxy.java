@@ -21,10 +21,22 @@ public class HttpProxy {
 
 
 
+    public static Proxy getProxy(){
+
+        return getFreeHttpProxy();
+    }
 
     // http://proxy.mimvp.com/free.php
-    public static void freeHttpProxy(){
+    public static Proxy getFreeHttpProxy(){
 
+        String ip = "120.52.72.5";
+        Integer port = 80;
+        boolean b = TelnetUtil.checkAvaliable(ip, port);
+        if(b) {
+            return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ip, port));
+        }
+
+        if(true) return Proxy.NO_PROXY;
 
         Document doc = JsoupOk.getDocumentWithRetry("http://proxy.mimvp.com/free.php");
         Elements select = doc.select("#list tr");
@@ -35,10 +47,10 @@ public class HttpProxy {
                 Elements ipTd = element.select("td:nth-child(2)");
 //                Elements portTd = element.select("td:nth-child(3)");
                 String portImgSrc = element.select("td:nth-child(3)").get(0).children().get(0).attr("src");
-
                 /**
                  * 可以尝试去自动识别验证码
                  * http://proxy.mimvp.com/free.php
+                 * http://www.open-open.com/solution/view/1319815639437
                  */
 
             }
@@ -46,6 +58,7 @@ public class HttpProxy {
 
         }
 
+        return null;
     }
 
     void tt() throws IOException {
@@ -55,16 +68,17 @@ public class HttpProxy {
     }
 
     public static void main(String[] args) {
-        freeHttpProxy();
-//        connectWithProxy();
+//        freeHttpProxy();
+        connectWithProxy();
 
     }
 
 
     public static void connectWithProxy(){
 
-        InetSocketAddress proxyInet = new InetSocketAddress("112.17.14.25",80);
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, proxyInet);
+//        InetSocketAddress proxyInet = new InetSocketAddress("120.52.72.59",80);
+//        Proxy proxy = new Proxy(Proxy.Type.HTTP, proxyInet);
+        Proxy proxy = getFreeHttpProxy();
 
         try {
             HttpURLConnection urlConnection = (HttpURLConnection)new URL("http://www.csdn.net/").openConnection(proxy);

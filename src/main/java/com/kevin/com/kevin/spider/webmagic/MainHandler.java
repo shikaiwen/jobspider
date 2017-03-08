@@ -60,10 +60,18 @@ public class MainHandler {
     }
 
 
+
+
+
     public void job1(){
+
+
+//        CsdnExpertCrawler expertCrawler = new CsdnExpertCrawler();
+//        expertCrawler.loadAllExpertToDB();
 
         MemberService memberService = MemberService.getInstance();
         ArticleService articleService = ArticleService.getInstance();
+
         List<BlogMember> allExpertBlog = memberService.getAllExpertBlog();
 
         List <BlogArticle> articleAll = new ArrayList <>(1000);
@@ -91,6 +99,13 @@ public class MainHandler {
 
         }
 
+    }
+
+
+    /**
+     * 从评论中获取用户进行循环爬取
+     */
+    public void job2(){
 
 
 

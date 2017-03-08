@@ -51,7 +51,7 @@ public class MemberService {
         BasicBSONObject query = new BasicBSONObject();
 
         Document bson = new Document();
-        FindIterable<Document> documents = csdn_expert.find(bson).limit(10);
+        FindIterable<Document> documents = csdn_expert.find(bson).limit(3);
 
         MongoCursor<Document> iter = documents.iterator();
 
