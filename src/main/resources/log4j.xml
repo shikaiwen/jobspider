@@ -69,6 +69,7 @@
         <appender-ref ref="elasticIndexFile" />
     </logger>
 
+
     <!-- 打出Sql配置 -->
     <!-- <category name="java.sql">
         <priority value="debug" />
@@ -79,7 +80,7 @@
 
     <!-- 根logger的设置 -->
     <root>
-        <priority value="INFO"/>
+        <priority value="TRACE"/>
         <appender-ref ref="stdout"/>
         <appender-ref ref="FILE"/>
     </root>

@@ -13,9 +13,10 @@ import java.util.Map;
  */
 public class DbPipeline implements Pipeline {
 
+    //从外部传入
     private List<Map> resultHolder = null;
 
-    public DbPipeline(List <Map> resultHolder) {
+    public DbPipeline(List<Map> resultHolder) {
         this.resultHolder = resultHolder;
     }
 
@@ -25,7 +26,14 @@ public class DbPipeline implements Pipeline {
         String s = JSON.toJSONString(resultItems);
         System.out.println(s);
         List<Map> list = (List <Map>) resultItems.get("list");
-        resultHolder.addAll(list);
+
+        /**
+         * 避免多线程爬取出现问题
+         */
+        synchronized (resultHolder) {
+            resultHolder.addAll(list);
+        }
+
 
     }
 

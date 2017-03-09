@@ -3,17 +3,29 @@ package com.kevin.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.parser.ParserConfig;
+import com.alibaba.fastjson.parser.deserializer.ParseProcess;
+import com.alibaba.fastjson.serializer.JSONSerializer;
+import com.alibaba.fastjson.serializer.ObjectSerializer;
+import com.alibaba.fastjson.serializer.SerializeConfig;
+import com.alibaba.fastjson.serializer.ValueFilter;
 import com.kevin.constant.Const;
-import com.kevin.utils.BeanUtils;
 import com.kevin.db.MongoConnector;
 import com.kevin.entity.BlogArticle;
 import com.kevin.entity.CsdnComment;
+import com.kevin.utils.BeanUtils;
 import com.kevin.utils.JsoupOk;
 import com.mongodb.Block;
+import com.mongodb.QueryBuilder;
+import com.mongodb.QueryOperators;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -88,18 +100,79 @@ public class ArticleService {
      * 查询用来获取用户名的评论
      * authorExtracted=0的记录
      */
-    public void getCommentToExtractUser(){
+    public List<CsdnComment> getCommentToExtractUser(int count){
 
+        List <CsdnComment> commentList = new ArrayList <>();
         MongoCollection <org.bson.Document> commentCols = MongoConnector.getCommentCols();
         org.bson.Document bson = new org.bson.Document();
-        bson.put("authorExtracted", 0);
-        FindIterable <org.bson.Document> documents = commentCols.find(bson);
-        documents.forEach((Block<? super org.bson.Document>) (doc)->{
 
-        });
+        int startVersion = 0;
 
+        while(startVersion < 5){
+            bson.put("version", startVersion);
+            FindIterable <org.bson.Document> documents = commentCols.find(bson).limit(count);
+
+            if(documents.iterator().hasNext()){
+                documents.forEach((Block<? super org.bson.Document>) (doc)->{
+                    CsdnComment c = new CsdnComment();
+
+                    String s = JSON.toJSONString(doc, new ValueFilter() {
+                        @Override
+                        public Object process(Object object, String name, Object value) {
+                            if("_id".equals(name) && value instanceof ObjectId){
+                                return value.toString();
+                            }
+                            return value;
+                        }
+                    });
+
+                    CsdnComment csdnComment = JSON.parseObject(s, CsdnComment.class);
+
+                    commentList.add(csdnComment);
+
+                });
+                break;
+            }else{
+                startVersion ++;
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(commentList)) {
+            upgradeVersion(commentList,CsdnComment.class);
+        }
+
+        return commentList;
 
     }
+
+    public void upgradeVersion(List objectList,Class objType){
+
+        if (CsdnComment.class.equals(objType)) {
+
+            List <org.bson.Document> documentList = new ArrayList <>();
+            List idList = new ArrayList();
+            objectList.forEach((obj)->{
+
+                CsdnComment comment = (CsdnComment)obj;
+//                comment.setVersion(comment.getVersion() + 1);
+//                org.bson.Document doc = new org.bson.Document();
+//                doc.putAll(BeanUtils.copyPropertiesToMap(comment));
+//                documentList.add(doc);
+                idList.add(new ObjectId(comment.get_id()));
+            });
+
+
+            MongoCollection <org.bson.Document> commentCols = MongoConnector.getCommentCols();
+            QueryBuilder builder = new QueryBuilder();
+            Bson query = Filters.in("_id", idList);
+            org.bson.Document updateDoc = new org.bson.Document();
+            updateDoc.put(QueryOperators.IN,new org.bson.Document("version", "1"));
+            commentCols.updateMany(query, updateDoc);
+
+        }
+
+    }
+
 
     public List<BlogArticle> getAllArticleByUserName(String username){
 

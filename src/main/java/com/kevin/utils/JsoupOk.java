@@ -20,7 +20,8 @@ public class JsoupOk {
 
     public static void main(String[] args) {
         logger.warn("dasfasfasdfasdf......");
-        getDocumentWithRetry("http://blog.csdn.net/caimouse/article/list/1452");
+//        getDocumentWithRetry("http://blog.csdn.net/caimouse/article/list/1452");
+        getDocumentWithRetry("http://blog.csdn.net/qq_37357293");
     }
 
     static Logger logger = LoggerFactory.getLogger(JsoupOk.class);

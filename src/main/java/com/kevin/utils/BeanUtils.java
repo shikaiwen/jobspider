@@ -1,9 +1,15 @@
 package com.kevin.utils;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import org.assertj.core.api.Assert;
 
-import static org.apache.commons.lang3.ArrayUtils.toArray;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * Created by kaiwen on 07/03/2017.
@@ -15,6 +21,49 @@ public class BeanUtils {
         List <String> strings = Arrays.asList("1", "2");
         strings.remove(1);
     }
+
+
+    public static Object getPropertyVal(String propertyName,Object obj){
+
+        try {
+
+            if(obj instanceof  Map){
+                Map data = (Map) obj;
+                Object val = data.get(propertyName);
+                return val;
+            }
+
+            BeanInfo beanInfo = Introspector.getBeanInfo(obj.getClass());
+            PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+            Map <String, PropertyDescriptor> discriptorMap = new HashMap <>();
+
+            for (int i = 0; i < propertyDescriptors.length; i++) {
+                PropertyDescriptor prop = propertyDescriptors[i];
+
+                if(prop.getName().compareToIgnoreCase("class") == 0) continue;
+
+                discriptorMap.put(prop.getName(), prop);
+            }
+
+            PropertyDescriptor propertyDescriptor = discriptorMap.get(propertyName);
+            if(propertyDescriptor == null) return null;
+            Method writeMethod = propertyDescriptor.getWriteMethod();
+            if(writeMethod == null) return null;
+
+            Object result = writeMethod.invoke(obj, null);
+
+            return result;
+
+        } catch (IntrospectionException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     /**
      * copy object properties to HashMap

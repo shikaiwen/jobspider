@@ -3,18 +3,28 @@ package com.kevin.service;
 import com.alibaba.fastjson.JSON;
 import com.kevin.db.MongoConnector;
 import com.kevin.entity.BlogMember;
+import com.kevin.utils.BeanUtils;
+import com.mongodb.Block;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.QueryBuilder;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import org.apache.commons.collections.CollectionUtils;
 import org.bson.BasicBSONObject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import static com.sun.org.apache.xml.internal.security.keys.keyresolver.KeyResolver.iterator;
 
 /**
  * Created by kaiwen on 01/03/2017.
@@ -33,6 +43,49 @@ public class MemberService {
 
     }
 
+
+    public boolean saveBlogMember(List<BlogMember> blogMemberList){
+
+        if (CollectionUtils.isEmpty(blogMemberList)) {
+            return true;
+        }
+
+        MongoCollection <Document> memberCols = MongoConnector.getMemberCols();
+
+        //过滤获取数据库中不存在的记录
+        List <BlogMember> filteredMemberList = new ArrayList <>();
+
+        List idList = new ArrayList();
+        blogMemberList.forEach((blogMember -> {
+            idList.add(new ObjectId(blogMember.get_id()));
+        }));
+
+        Document condition = new Document("_id", Filters.in("$in",idList) );
+
+        FindIterable <Document> existedMember = memberCols.find(condition);
+        existedMember.forEach((Block<? super Document>) (doc)->{
+
+            String id = doc.getObjectId("_id").toString();
+            if (!idList.contains(id)) {
+                int indexOfId = idList.indexOf(id);
+                filteredMemberList.add(blogMemberList.get(indexOfId));
+            }
+        });
+
+        List<Document> documentList = new ArrayList <>();
+        filteredMemberList.forEach((blogMember -> {
+            Document document = new Document();
+            Map map = BeanUtils.copyPropertiesToMap(blogMember);
+            document.putAll(map);
+
+        }));
+
+        MongoConnector.getMemberCols().insertMany(documentList);
+        return true;
+    }
+
+
+
     static MemberService instance = null;
     public static MemberService getInstance(){
         if (instance == null) {
@@ -49,6 +102,8 @@ public class MemberService {
         MongoCollection<Document> csdn_expert = database.getCollection("csdn_expert");
 
         BasicBSONObject query = new BasicBSONObject();
+
+
 
         Document bson = new Document();
         FindIterable<Document> documents = csdn_expert.find(bson).limit(3);

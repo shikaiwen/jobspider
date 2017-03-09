@@ -52,7 +52,7 @@ public class CsdnExpertCrawler implements PageProcessor {
         for(int i = 1 ;i <= pageCount;i++) {
             spider.addUrl(listUrl + i);
         }
-//        spider.addPipeline(new DbPipeline(mapList));
+        spider.addPipeline(new DbPipeline(mapList));
         spider.run();
         MongoConnector.insertBatch("test", "csdn_expert", mapList);
     }
@@ -93,7 +93,7 @@ public class CsdnExpertCrawler implements PageProcessor {
             arrList.add(map);
 
 
-            this.mapList.add(map);
+//            this.mapList.add(map);
 
 
 //            System.out.println(JSON.toJSONString(CsdnExpertCrawler.this.mapList));

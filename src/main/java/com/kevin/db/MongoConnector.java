@@ -2,11 +2,13 @@ package com.kevin.db;
 
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import org.bson.BsonDocument;
+import com.mongodb.client.model.Filters;
+import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,14 +61,103 @@ public class MongoConnector {
     public static final String HOST = "172.16.2.31";
 
 
+//    static Logger logger = LoggerFactory.getLogger("com.mongodb");
+    static {
+
+
+    }
+//    Logger mongoLogger = Logger.getLogger(  );
+//    mongoLogger.setLevel(Level.SEVERE);
+
 
     public static void main(String[] args) {
 //        getDB("test");
-        new MongoConnector().insert();
+
+        inTest();
+
     }
+
+    public static void inTest(){
+
+        // Enable MongoDB logging in general
+        System.setProperty("DEBUG.MONGO", "true");
+        // Enable DB operation tracing
+        System.setProperty("DB.TRACE", "true");
+
+        List list = new ArrayList();
+        list.add(new ObjectId("58bfb40110a1fb3d444ece77"));
+//        list.add("58bfb40110a1fb3d444ece78");
+//        list.add("58bfb40110a1fb3d444ece79");
+//        list.add("58bfb40110a1fb3d444ece7a");
+//        list.add("58bfb40110a1fb3d444ece7b");
+//        list.add("58bfb40110a1fb3d444ece7c");
+//        list.add("58bfb40110a1fb3d444ece7d");
+//        list.add("58bfb40110a1fb3d444ece7e");
+//        list.add("58bfb40110a1fb3d444ece7f");
+//        list.add("58bfb40110a1fb3d444ece80");
+//        list.add("58bfb40110a1fb3d444ece81");
+//        list.add("58bfb40110a1fb3d444ece82");
+//        list.add("58bfb40110a1fb3d444ece83");
+//        list.add("58bfb40110a1fb3d444ece84");
+//        list.add("58bfb40110a1fb3d444ece85");
+//        list.add("58bfb40110a1fb3d444ece86");
+//        list.add("58bfb40110a1fb3d444ece87");
+//        list.add("58bfb40110a1fb3d444ece88");
+//        list.add("58bfb40110a1fb3d444ece89");
+//        list.add("58bfb40110a1fb3d444ece8a");
+//        list.add("58bfb40110a1fb3d444ece8b");
+//        list.add("58bfb40110a1fb3d444ece8c");
+//        list.add("58bfb40110a1fb3d444ece8d");
+//        list.add("58bfb40110a1fb3d444ece8e");
+//            list.add("yuanmeng001");
+//            list.add("caimouse");
+//            list.add("FungLeo");
+//            list.add("zhangchen124");
+//            list.add("mydo");
+//            list.add("niubitianping");
+//            list.add("K346K346");
+//            list.add("qfanmingyiq");
+//            list.add("lights_joy");
+//            list.add("SEU_Calvin");
+//            list.add("broadview2006");
+//            list.add("duan_zhihua");
+//            list.add("freewebsys");
+//            list.add("anddlecn");
+//            list.add("jxw167");
+//            list.add("xuexiaodong2009");
+//            list.add("qq924862077");
+//            list.add("ityouknow");
+//            list.add("zhangphil");
+//            list.add("iwanghang");
+//            list.add("Lnho2015");
+//            list.add("Evankaka");
+//            list.add("chszs");
+//            list.add("xiangzhihong8");
+
+//        Document condition = new Document("_id", new Document("$in",list));
+//        Document condition = new Document("username", "FungLeo");
+
+        Bson idQuery = Filters.in("_id", list);
+
+//        FindIterable<Document> existedMember = getMemberCols().find(idQuery);
+        MongoCursor<Document> cursor = getMemberCols().find(idQuery).iterator();
+
+        System.out.println(cursor.hasNext());
+        List namelist = new ArrayList <>();
+//        existedMember.forEach((Block <? super Document>) (doc)->{
+//            Object username = doc.get("username");
+//            namelist.add(username);
+//        });
+
+        System.out.println(StringUtils.join(namelist.toArray()));
+    }
+
+
+
 
     public static final String ARTICLE_COLS = "article";
     public static final String COMMENT_COLS = "comments";
+    public static final String MEMBER_COLS = "member";
 
 
     public static MongoCollection<Document> getArticleCols(){
@@ -75,6 +166,10 @@ public class MongoConnector {
     }
     public static MongoCollection<Document> getCommentCols(){
         return getCollection(COMMENT_COLS);
+    }
+
+    public static MongoCollection<Document> getMemberCols(){
+        return getCollection(MEMBER_COLS);
     }
 
 

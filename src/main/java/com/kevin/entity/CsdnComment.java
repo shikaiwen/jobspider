@@ -1,5 +1,7 @@
 package com.kevin.entity;
 
+import java.util.Date;
+
 /**
  * Created by kaiwen on 07/03/2017.
  */
@@ -18,7 +20,9 @@ public class CsdnComment {
     private String Userface;
 
     //是否已经提取用户
-    private int authorExtracted;
+    private int version;
+
+    private Date createDate;
 
     public String get_id() {
         return _id;
@@ -100,11 +104,20 @@ public class CsdnComment {
         Userface = userface;
     }
 
-    public int getAuthorExtracted() {
-        return authorExtracted;
+
+    public int getVersion() {
+        return version;
     }
 
-    public void setAuthorExtracted(int authorExtracted) {
-        this.authorExtracted = authorExtracted;
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
     }
 }

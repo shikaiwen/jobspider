@@ -6,4 +6,12 @@ package com.kevin.constant;
 public class Const {
 
     public static final String DB_ID = "_id";
+
+
+    /**
+     * 固定地址相关
+     */
+    public static final String CSDN_BLOG_DOMAIN = "http://www.csdn.net/";
+
+
 }

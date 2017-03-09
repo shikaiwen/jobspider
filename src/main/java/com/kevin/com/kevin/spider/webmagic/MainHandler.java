@@ -2,6 +2,7 @@ package com.kevin.com.kevin.spider.webmagic;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.kevin.constant.Const;
 import com.kevin.entity.BlogArticle;
 import com.kevin.entity.BlogMember;
 import com.kevin.entity.CsdnComment;
@@ -14,10 +15,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by kaiwen on 28/02/2017.
@@ -48,7 +46,8 @@ public class MainHandler {
 
         MainHandler mainHandler = new MainHandler();
 //        mainHandler.start();
-        mainHandler.job1();
+//        mainHandler.job1();
+        mainHandler.job2();
 
     }
 
@@ -60,14 +59,13 @@ public class MainHandler {
     }
 
 
-
-
-
+    /**
+     * 总任务，从获取专家号和专家博客开始
+     */
     public void job1(){
 
-
-//        CsdnExpertCrawler expertCrawler = new CsdnExpertCrawler();
-//        expertCrawler.loadAllExpertToDB();
+        CsdnExpertCrawler expertCrawler = new CsdnExpertCrawler();
+        expertCrawler.loadAllExpertToDB();
 
         MemberService memberService = MemberService.getInstance();
         ArticleService articleService = ArticleService.getInstance();
@@ -90,13 +88,13 @@ public class MainHandler {
 
                 if (article.getCommentCount() > 0) {
                     List <CsdnComment> comentList = articleService.getCommentListByArticleId(articleId);
+                    comentList.forEach((c)->{c.setCreateDate(new Date());});
                     commentsAll.addAll(comentList);
                 }
             }
             articleAll.addAll(articleList);
             articleService.saveArticle(articleAll);
             articleService.saveComment(commentsAll);
-
         }
 
     }
@@ -107,7 +105,28 @@ public class MainHandler {
      */
     public void job2(){
 
+        MemberService memberService = MemberService.getInstance();
+        ArticleService articleService = ArticleService.getInstance();
 
+        List <CsdnComment> commentToExtractUser = articleService.getCommentToExtractUser(10);
+
+        List <BlogMember> memberList = new ArrayList <>();
+        commentToExtractUser.forEach((comment)->{
+
+            String userName = comment.getUserName();
+//            List<BlogArticle> userAllArticle = articleService.getAllArticleByUserName(userName);
+
+            BlogMember m = new BlogMember();
+            m.setFetchType("1");
+            m.setSource("1");
+            m.setUsername(userName);
+            m.setBlogUrl(Const.CSDN_BLOG_DOMAIN + userName);
+            m.setCreateDate(new Date());
+            m.setUpdateDate(new Date());
+            memberList.add(m);
+        });
+
+        boolean b = memberService.saveBlogMember(memberList);
 
     }
 
