@@ -3,11 +3,6 @@ package com.kevin.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.alibaba.fastjson.parser.ParserConfig;
-import com.alibaba.fastjson.parser.deserializer.ParseProcess;
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.ObjectSerializer;
-import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.ValueFilter;
 import com.kevin.constant.Const;
 import com.kevin.db.MongoConnector;
@@ -16,10 +11,9 @@ import com.kevin.entity.CsdnComment;
 import com.kevin.utils.BeanUtils;
 import com.kevin.utils.JsoupOk;
 import com.mongodb.Block;
-import com.mongodb.QueryBuilder;
-import com.mongodb.QueryOperators;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -33,11 +27,12 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.kevin.constant.Const.CSDN_ARTICLE_LIST_PAGE_URL;
 
 /**
  * Created by kaiwen on 07/03/2017.
@@ -76,75 +71,14 @@ public class ArticleService {
 
     }
 
-    /**
-     * save comments to db
-     * @param articleList
-     */
-    public void saveComment(List <CsdnComment> commentList) {
 
-        MongoCollection <org.bson.Document> collection = MongoConnector.getCommentCols();
-
-        List <org.bson.Document> docList = new ArrayList <>();
-        commentList.forEach((comment)->{
-            org.bson.Document doc = new org.bson.Document();
-            Map stringObjectMap = BeanUtils.copyPropertiesToMap(comment,Const.DB_ID);
-            doc.putAll(stringObjectMap);
-            docList.add(doc);
-        });
-
-        collection.insertMany(docList);
-    }
 
 
     /**
-     * 查询用来获取用户名的评论
-     * authorExtracted=0的记录
+     * 通用更新版本号
+     * @param objectList
+     * @param objType
      */
-    public List<CsdnComment> getCommentToExtractUser(int count){
-
-        List <CsdnComment> commentList = new ArrayList <>();
-        MongoCollection <org.bson.Document> commentCols = MongoConnector.getCommentCols();
-        org.bson.Document bson = new org.bson.Document();
-
-        int startVersion = 0;
-
-        while(startVersion < 5){
-            bson.put("version", startVersion);
-            FindIterable <org.bson.Document> documents = commentCols.find(bson).limit(count);
-
-            if(documents.iterator().hasNext()){
-                documents.forEach((Block<? super org.bson.Document>) (doc)->{
-                    CsdnComment c = new CsdnComment();
-
-                    String s = JSON.toJSONString(doc, new ValueFilter() {
-                        @Override
-                        public Object process(Object object, String name, Object value) {
-                            if("_id".equals(name) && value instanceof ObjectId){
-                                return value.toString();
-                            }
-                            return value;
-                        }
-                    });
-
-                    CsdnComment csdnComment = JSON.parseObject(s, CsdnComment.class);
-
-                    commentList.add(csdnComment);
-
-                });
-                break;
-            }else{
-                startVersion ++;
-            }
-        }
-
-        if (CollectionUtils.isNotEmpty(commentList)) {
-            upgradeVersion(commentList,CsdnComment.class);
-        }
-
-        return commentList;
-
-    }
-
     public void upgradeVersion(List objectList,Class objType){
 
         if (CsdnComment.class.equals(objType)) {
@@ -163,22 +97,101 @@ public class ArticleService {
 
 
             MongoCollection <org.bson.Document> commentCols = MongoConnector.getCommentCols();
-            QueryBuilder builder = new QueryBuilder();
+//            QueryBuilder builder = new QueryBuilder();
             Bson query = Filters.in("_id", idList);
+//            org.bson.Document queryDoc = new org.bson.Document();
+
+
             org.bson.Document updateDoc = new org.bson.Document();
-            updateDoc.put(QueryOperators.IN,new org.bson.Document("version", "1"));
+            updateDoc.put("$inc",new org.bson.Document("version", 1));
+
             commentCols.updateMany(query, updateDoc);
 
         }
 
     }
 
+    /**
+     * 获取用户的新文章
+     * @param username
+     * @return
+     */
+    public List<BlogArticle> getUserNewArticle(String username){
 
+        List<BlogArticle> resultList = new ArrayList<>();
+
+        List <BlogArticle> articleByPage = getArticleByPage(username, 1);
+
+
+        org.bson.Document document = new org.bson.Document();
+        document.put("$eq", new org.bson.Document("username", username));
+
+
+        MongoCollection <org.bson.Document> articleCols = MongoConnector.getArticleCols();
+        MongoCursor <org.bson.Document> dateSortCurosr = articleCols.find().sort(new org.bson.Document("createDate", -1)).limit(1).iterator();
+
+        List <BlogArticle> dbArticleList = documentArticleMapping(dateSortCurosr);
+        BlogArticle dbArticle = dbArticleList.get(0);
+
+
+        int eqIndex = -1;
+        for (int i = 0; i < articleByPage.size(); i++) {
+            BlogArticle siteArticle = articleByPage.get(i);
+            if(dbArticle.getCreateDate().equals(siteArticle.getCreateDate())){
+                eqIndex = i;
+            }
+        }
+
+        if (eqIndex != -1) {
+            resultList.addAll(articleByPage.subList(0, eqIndex + 1));
+        }
+
+        return resultList;
+    }
+
+    /**
+     * 映射BlogArticle和对应的Document
+     * @param documents
+     * @return
+     */
+    public List <BlogArticle> documentArticleMapping(MongoCursor <org.bson.Document> documents) {
+
+        List <BlogArticle> articleList = new ArrayList <>();
+
+
+        if(!documents.hasNext()) return articleList;
+
+        documents.forEachRemaining((doc)->{
+            BlogArticle c = new BlogArticle();
+
+            String s = JSON.toJSONString(doc, new ValueFilter() {
+                @Override
+                public Object process(Object object, String name, Object value) {
+                    if ("_id".equals(name) && value instanceof ObjectId) {
+                        return value.toString();
+                    }
+                    return value;
+                }
+            });
+
+            BlogArticle article = JSON.parseObject(s, BlogArticle.class);
+            articleList.add(article);
+
+        });
+        return articleList;
+    }
+
+
+    /**
+     * 获取一个用户的所有文章
+     * @param username
+     * @return
+     */
     public List<BlogArticle> getAllArticleByUserName(String username){
 
         List<BlogArticle> articleList = new ArrayList<>();
 
-        String listUrl = "http://blog.csdn.net/"+username;
+        String listUrl = Const.CSDN_BLOG_LIST_DOMAIN+username;
 
         Document document = JsoupOk.getDocumentWithRetry(listUrl);
         if(document == null) return articleList;
@@ -195,10 +208,22 @@ public class ArticleService {
         /**
          * 这里有一个hack方式，可以将pagesize设置为一个大于实际页数的，csdn会返回所有的文章
          */
-        int count = NumberUtils.toInt(recordCnt, 0);
-        String getAllListUrl = listUrl + "/article/list/" + count;
+        int pageNo = NumberUtils.toInt(recordCnt, 0);
+        articleList = getArticleByPage(username, pageNo);
 
-        Document articleDoc = JsoupOk.getDocumentWithRetry(getAllListUrl);
+        return articleList;
+    }
+
+
+    /**
+     * 按页数获取文章列表
+     * http://blog.csdn.net/shikaiwencn/article/list/1
+     */
+    public List<BlogArticle> getArticleByPage(String username,int pageNo){
+
+        List<BlogArticle> articleList = new ArrayList<>();
+        String pageUrl = CSDN_ARTICLE_LIST_PAGE_URL.replace("username", username).replace("pageNo", pageNo+"");
+        Document articleDoc = JsoupOk.getDocumentWithRetry(pageUrl);
 
         Elements articleElts = articleDoc.select(".list_item_new .list_item");
         articleElts.forEach((item)->{
@@ -224,6 +249,7 @@ public class ArticleService {
             BlogArticle article = new BlogArticle();
             article.setArticleId(NumberUtils.toInt(articleIdStr));
             article.setTitle(title);
+            article.setUsername(username);
             try {
                 article.setCreateDate(DateUtils.parseDate(createDateTxt, "yyyy-MM-dd HH:mm"));
             } catch (ParseException e) {
@@ -234,59 +260,16 @@ public class ArticleService {
             articleList.add(article);
         });
 
-
-//            if(select == null || select.size() == 0) return;
-//            int maxPage = 1;
-//            int currentpage = 1;
-//            if(select != null){
-//                //获取文章页数
-//                Element lastpage = select.get(select.size() - 1);
-//                String href = lastpage.attr("href");
-//                String lastPageStr = href.substring(href.lastIndexOf("/") + 1);
-//                maxPage = NumberUtils.toInt(lastPageStr, 1);
-//            }
-//            while (currentpage <= maxPage) {
-//                String pageUrl = listUrl + "/article/list/" + currentpage;
-//                Document articleDoc = null;
-//                if (currentpage == 1) {
-//                    articleDoc = document;
-//                } else {
-//                    articleDoc = Jsoup.connect(pageUrl).header("User-Agent", "neznen").get();
-//                }
-//            }
-
         return articleList;
     }
 
 
+
+
+
     /**
-     * 根据文章去获取评论
-     * csdn会返回所有的评论
-     * http://blog.csdn.net/huanghm88/comment/list/3965218?page=1
-     * 通过测试发现url中的用户名对返回结果没影响(只要用户存在即可)，也就是说csdn其实是根据articleId去获取评论的
+     * 从数据库获取用户文章
      */
-    public List<CsdnComment> getCommentListByArticleId(Integer articleId){
 
-        String commentUrl = "http://blog.csdn.net/shikaiwencn/comment/list/"+articleId+"?page=1";
-        List <CsdnComment> comments = new ArrayList<>();
-        try {
-            String body = Jsoup.connect(commentUrl)
-                    .header("User-Agent","zeneyang")
-                    .ignoreContentType(true)
-                    .execute().body();
-            JSONObject parse = (JSONObject) JSON.parse(body);
-            if (parse == null) {
-                return comments;
-            }
-
-            List<Map> commentList = (List<Map>)parse.get("list");
-            Type type = new TypeReference<List<CsdnComment>>(){}.getType();
-            comments = JSON.parseObject(JSON.toJSONString(commentList), type);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return comments == null ? new ArrayList <>() : comments;
-    }
 
 }

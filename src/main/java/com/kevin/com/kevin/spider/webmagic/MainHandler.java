@@ -7,9 +7,12 @@ import com.kevin.entity.BlogArticle;
 import com.kevin.entity.BlogMember;
 import com.kevin.entity.CsdnComment;
 import com.kevin.service.ArticleService;
+import com.kevin.service.CommentService;
 import com.kevin.service.MemberService;
+import com.kevin.service.ServiceFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -33,6 +36,10 @@ import java.util.*;
  */
 public class MainHandler {
 
+    static ArticleService articleService = ServiceFactory.getService(ArticleService.class);
+    static MemberService memberService = ServiceFactory.getService(MemberService.class);
+    static CommentService commentService = ServiceFactory.getService(CommentService.class);
+
 
     public static void main(String[] args) throws Exception{
 
@@ -44,13 +51,16 @@ public class MainHandler {
 //        Document document = Jsoup.connect("http://blog.csdn.net/yuanmeng001")
 //                .header("User-Agent","Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36").get();
 
+        List list = Arrays.asList(1);
+        System.out.println(StringUtils.join(list.subList(0, 1)));
+
+
         MainHandler mainHandler = new MainHandler();
 //        mainHandler.start();
 //        mainHandler.job1();
-        mainHandler.job2();
+        mainHandler.job3();
 
     }
-
 
     public void setDefaultProxy(){
         System.setProperty("http.proxySet", "true");
@@ -87,34 +97,32 @@ public class MainHandler {
                 Integer articleId = article.getArticleId();
 
                 if (article.getCommentCount() > 0) {
-                    List <CsdnComment> comentList = articleService.getCommentListByArticleId(articleId);
+                    List <CsdnComment> comentList = commentService.getCommentListByArticleId(articleId);
                     comentList.forEach((c)->{c.setCreateDate(new Date());});
                     commentsAll.addAll(comentList);
                 }
             }
             articleAll.addAll(articleList);
             articleService.saveArticle(articleAll);
-            articleService.saveComment(commentsAll);
+
+            commentService.saveComment(commentsAll);
         }
 
     }
 
-
     /**
-     * 从评论中获取用户进行循环爬取
+     * 从评论中获取新用户,有去重功能，不会保存已经存在的用户
      */
     public void job2(){
 
         MemberService memberService = MemberService.getInstance();
         ArticleService articleService = ArticleService.getInstance();
-
-        List <CsdnComment> commentToExtractUser = articleService.getCommentToExtractUser(10);
+        List <CsdnComment> commentToExtractUser = commentService.getCommentToExtractUser(10);
 
         List <BlogMember> memberList = new ArrayList <>();
         commentToExtractUser.forEach((comment)->{
 
             String userName = comment.getUserName();
-//            List<BlogArticle> userAllArticle = articleService.getAllArticleByUserName(userName);
 
             BlogMember m = new BlogMember();
             m.setFetchType("1");
@@ -127,8 +135,90 @@ public class MainHandler {
         });
 
         boolean b = memberService.saveBlogMember(memberList);
+    }
+
+
+    /**
+     * 检查更新操作，更新文章信息，列表信息
+     * job
+     */
+    public void job3(){
+
+        //获取10个用户去执行更新操作
+        List <BlogMember> memberToUpdate = memberService.getMemberToUpdate(10);
+
+        memberToUpdate.forEach(member->{
+            doUpdateJobByMember(member);
+        });
 
     }
+
+
+    /**
+     * 查询新爬取到的用户去处理其所有文章和评论
+     */
+    public void job4(){
+
+        MemberService memberService = MemberService.getInstance();
+        ArticleService articleService = ArticleService.getInstance();
+
+        List <BlogMember> newMember = memberService.getNewMember(5);
+
+        List <BlogArticle> articleAll = new ArrayList <>(1000);
+        List <CsdnComment> commentsAll = new ArrayList <>(5000);
+        newMember.forEach((member)->{
+            String username = member.getUsername();
+            List <BlogArticle> userAllArticle = articleService.getAllArticleByUserName(username);
+
+            userAllArticle.forEach((article)->{
+                Integer articleId = article.getArticleId();
+
+                if (article.getCommentCount() > 0) {
+                    List <CsdnComment> comentList = commentService.getCommentListByArticleId(articleId);
+                    comentList.forEach((c)->{c.setCreateDate(new Date());});
+                    commentsAll.addAll(comentList);
+                }
+
+            });
+            articleAll.addAll(userAllArticle);
+        });
+
+        articleService.saveArticle(articleAll);
+        commentService.saveComment(commentsAll);
+    }
+
+
+
+
+
+    /**
+     * 更新单个用户的所有信息
+     * 获取用户新增的文章
+     * 更新用户所有的评论，先删除，在新增
+     * @param blogMember
+     */
+    public void doUpdateJobByMember(BlogMember blogMember) {
+
+        List <BlogArticle> userNewArticle = articleService.getUserNewArticle(blogMember.getUsername());
+        if (CollectionUtils.isNotEmpty(userNewArticle)) {
+            articleService.saveArticle(userNewArticle);
+        }
+
+        userNewArticle.forEach(article->{
+
+            boolean b = commentService.deleteCommentByArticle(article.getArticleId());
+            List <CsdnComment> comments = commentService.getCommentListByArticleId(article.getArticleId());
+            commentService.saveComment(comments);
+
+        });
+
+
+    }
+
+
+
+
+
 
 
     public void start(){
@@ -182,11 +272,5 @@ public class MainHandler {
     }
 
 
-    /**
-     * 从 comment中去提取用户，可以用单独的线程去做
-     */
-    public void fetchUserFromComment(){
-
-    }
 
 }

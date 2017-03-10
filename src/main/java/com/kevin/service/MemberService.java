@@ -1,18 +1,19 @@
 package com.kevin.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.ValueFilter;
 import com.kevin.db.MongoConnector;
+import com.kevin.entity.BlogArticle;
 import com.kevin.entity.BlogMember;
+import com.kevin.entity.CsdnComment;
 import com.kevin.utils.BeanUtils;
+import com.kevin.utils.MappingUtil;
 import com.mongodb.Block;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.QueryBuilder;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
 import org.apache.commons.collections.CollectionUtils;
 import org.bson.BasicBSONObject;
 import org.bson.Document;
@@ -20,11 +21,8 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import static com.sun.org.apache.xml.internal.security.keys.keyresolver.KeyResolver.iterator;
 
 /**
  * Created by kaiwen on 01/03/2017.
@@ -43,7 +41,11 @@ public class MemberService {
 
     }
 
-
+    /**
+     * 批量保存会员信息，会先根据username过滤掉db中存在记录
+     * @param blogMemberList
+     * @return
+     */
     public boolean saveBlogMember(List<BlogMember> blogMemberList){
 
         if (CollectionUtils.isEmpty(blogMemberList)) {
@@ -55,30 +57,38 @@ public class MemberService {
         //过滤获取数据库中不存在的记录
         List <BlogMember> filteredMemberList = new ArrayList <>();
 
-        List idList = new ArrayList();
+        List usernameList = new ArrayList();
         blogMemberList.forEach((blogMember -> {
-            idList.add(new ObjectId(blogMember.get_id()));
+            usernameList.add(blogMember.getUsername());
         }));
 
-        Document condition = new Document("_id", Filters.in("$in",idList) );
+        Document condition = new Document("username",  new Document("$in",usernameList) );
+        FindIterable <Document> documents = memberCols.find(condition);
 
-        FindIterable <Document> existedMember = memberCols.find(condition);
-        existedMember.forEach((Block<? super Document>) (doc)->{
+        MongoCursor <Document> existedMember = memberCols.find(condition).iterator();
 
-            String id = doc.getObjectId("_id").toString();
-            if (!idList.contains(id)) {
-                int indexOfId = idList.indexOf(id);
-                filteredMemberList.add(blogMemberList.get(indexOfId));
+
+        if (!existedMember.hasNext()) {
+            filteredMemberList.addAll(blogMemberList);
+        }else{
+            for(;existedMember.hasNext();) {
+                Document doc = existedMember.next();
+                String username = (String)doc.get("username");
+                if (!usernameList.contains(username)) {
+                    int indexOfUsername = usernameList.indexOf(username);
+                    filteredMemberList.add(blogMemberList.get(indexOfUsername));
+                }
             }
-        });
+        }
 
         List<Document> documentList = new ArrayList <>();
         filteredMemberList.forEach((blogMember -> {
             Document document = new Document();
-            Map map = BeanUtils.copyPropertiesToMap(blogMember);
+            Map map = BeanUtils.copyPropertiesToMap(blogMember, "_id");
             document.putAll(map);
-
+            documentList.add(document);
         }));
+
 
         MongoConnector.getMemberCols().insertMany(documentList);
         return true;
@@ -178,6 +188,76 @@ public class MemberService {
         });
 
         commentCollection.insertMany(saveDocList);
+
+    }
+
+
+    /**
+     * 获取新用户
+     * version=0
+     */
+    public List<BlogMember> getNewMember(int maxCount){
+
+        List <BlogMember> memberList = new ArrayList <>();
+        MongoCollection <org.bson.Document> memberCols = MongoConnector.getMemberCols();
+        org.bson.Document bson = new org.bson.Document();
+
+        int startVersion = 0;
+
+        bson.put("version", startVersion);
+        FindIterable <org.bson.Document> documents = memberCols.find(bson).limit(maxCount);
+        if(documents.iterator().hasNext()){
+            documents.forEach((Block<? super org.bson.Document>) (doc)->{
+                BlogMember c = new BlogMember();
+
+                String s = JSON.toJSONString(doc, new ValueFilter() {
+                    @Override
+                    public Object process(Object object, String name, Object value) {
+                        if("_id".equals(name) && value instanceof ObjectId){
+                            return value.toString();
+                        }
+                        return value;
+                    }
+                });
+
+                BlogMember blogMember = JSON.parseObject(s, BlogMember.class);
+                memberList.add(blogMember);
+
+            });
+        }
+
+        return memberList;
+
+    }
+
+
+    /**
+     * 获取增量爬取的用户
+     */
+    public List<BlogMember> getMemberToUpdate(int count){
+
+        if(count <= 0) count = 1;
+
+        List <BlogMember> resultList = new ArrayList <>();
+
+        MongoCollection <org.bson.Document> memberCols = MongoConnector.getMemberCols();
+        org.bson.Document bson = new org.bson.Document();
+
+        int startVersion = 0;
+
+        while(startVersion < 5){
+            bson.put("version", startVersion);
+            MongoCursor <Document> cursor = memberCols.find(bson).limit(count).iterator();
+
+            if (cursor.hasNext()) {
+                resultList.addAll(MappingUtil.documentArticleMapping(cursor, BlogMember.class));
+                break;
+            }else{
+                startVersion ++;
+            }
+        }
+
+        return resultList;
 
     }
 

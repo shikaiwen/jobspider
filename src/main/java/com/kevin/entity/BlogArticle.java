@@ -14,6 +14,7 @@ public class BlogArticle {
     private Integer commentCount;
     private Date createDate;
 
+    private String username;
     private String content;
 
 
@@ -71,5 +72,13 @@ public class BlogArticle {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }
