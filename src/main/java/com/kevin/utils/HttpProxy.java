@@ -2,13 +2,11 @@ package com.kevin.utils;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -69,8 +67,8 @@ public class HttpProxy {
 
     public static void main(String[] args) {
 //        freeHttpProxy();
-        connectWithProxy();
-
+//        connectWithProxy();
+        System.out.println("3343");
     }
 
 
