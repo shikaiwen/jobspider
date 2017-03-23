@@ -54,11 +54,18 @@ public class MainHandler {
         List list = Arrays.asList(1);
         System.out.println(StringUtils.join(list.subList(0, 1)));
 
-
         MainHandler mainHandler = new MainHandler();
+        mainHandler.job1();
 //        mainHandler.start();
 //        mainHandler.job1();
-        mainHandler.job3();
+//        mainHandler.job3();
+
+    }
+
+    /**
+     * 删除所有数据重新执行
+     */
+    public void dropAllData(){
 
     }
 
@@ -77,8 +84,8 @@ public class MainHandler {
         CsdnExpertCrawler expertCrawler = new CsdnExpertCrawler();
         expertCrawler.loadAllExpertToDB();
 
-        MemberService memberService = MemberService.getInstance();
-        ArticleService articleService = ArticleService.getInstance();
+//        MemberService memberService = MemberService.getInstance();
+//        ArticleService articleService = ArticleService.getInstance();
 
         List<BlogMember> allExpertBlog = memberService.getAllExpertBlog();
 
@@ -103,10 +110,15 @@ public class MainHandler {
                 }
             }
             articleAll.addAll(articleList);
-            articleService.saveArticle(articleAll);
+        }
 
+        if(CollectionUtils.isNotEmpty(articleAll)){
+            articleService.saveArticle(articleAll);
+        }
+        if(CollectionUtils.isNotEmpty(commentsAll)){
             commentService.saveComment(commentsAll);
         }
+
 
     }
 
@@ -115,26 +127,8 @@ public class MainHandler {
      */
     public void job2(){
 
-        MemberService memberService = MemberService.getInstance();
-        ArticleService articleService = ArticleService.getInstance();
-        List <CsdnComment> commentToExtractUser = commentService.getCommentToExtractUser(10);
 
-        List <BlogMember> memberList = new ArrayList <>();
-        commentToExtractUser.forEach((comment)->{
 
-            String userName = comment.getUserName();
-
-            BlogMember m = new BlogMember();
-            m.setFetchType("1");
-            m.setSource("1");
-            m.setUsername(userName);
-            m.setBlogUrl(Const.CSDN_BLOG_DOMAIN + userName);
-            m.setCreateDate(new Date());
-            m.setUpdateDate(new Date());
-            memberList.add(m);
-        });
-
-        boolean b = memberService.saveBlogMember(memberList);
     }
 
 
@@ -144,12 +138,6 @@ public class MainHandler {
      */
     public void job3(){
 
-        //获取10个用户去执行更新操作
-        List <BlogMember> memberToUpdate = memberService.getMemberToUpdate(10);
-
-        memberToUpdate.forEach(member->{
-            doUpdateJobByMember(member);
-        });
 
     }
 
@@ -159,32 +147,7 @@ public class MainHandler {
      */
     public void job4(){
 
-        MemberService memberService = MemberService.getInstance();
-        ArticleService articleService = ArticleService.getInstance();
 
-        List <BlogMember> newMember = memberService.getNewMember(5);
-
-        List <BlogArticle> articleAll = new ArrayList <>(1000);
-        List <CsdnComment> commentsAll = new ArrayList <>(5000);
-        newMember.forEach((member)->{
-            String username = member.getUsername();
-            List <BlogArticle> userAllArticle = articleService.getAllArticleByUserName(username);
-
-            userAllArticle.forEach((article)->{
-                Integer articleId = article.getArticleId();
-
-                if (article.getCommentCount() > 0) {
-                    List <CsdnComment> comentList = commentService.getCommentListByArticleId(articleId);
-                    comentList.forEach((c)->{c.setCreateDate(new Date());});
-                    commentsAll.addAll(comentList);
-                }
-
-            });
-            articleAll.addAll(userAllArticle);
-        });
-
-        articleService.saveArticle(articleAll);
-        commentService.saveComment(commentsAll);
     }
 
 
@@ -194,7 +157,7 @@ public class MainHandler {
     /**
      * 更新单个用户的所有信息
      * 获取用户新增的文章
-     * 更新用户所有的评论，先删除，在新增
+     * 更新用户所有的评论，先删除，再新增
      * @param blogMember
      */
     public void doUpdateJobByMember(BlogMember blogMember) {

@@ -11,12 +11,15 @@ import com.kevin.utils.BeanUtils;
 import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.jsoup.Jsoup;
 
+import javax.print.Doc;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -70,46 +73,79 @@ public class CommentService {
 
         List <CsdnComment> commentList = new ArrayList <>();
         MongoCollection<Document> commentCols = MongoConnector.getCommentCols();
-        org.bson.Document bson = new org.bson.Document();
 
+        org.bson.Document bson = new org.bson.Document();
         int startVersion = 0;
 
-        while(startVersion < 5){
-            bson.put("version", startVersion);
-            FindIterable<Document> documents = commentCols.find(bson).limit(count);
+        Document sortDoc = new Document();
+        //升序
+        sortDoc.put("version", 1);
+        FindIterable<Document> documents = commentCols.find(bson).sort(sortDoc).limit(count);
 
-            if(documents.iterator().hasNext()){
-                documents.forEach((Block<? super Document>) (doc)->{
-                    CsdnComment c = new CsdnComment();
+        if(documents.iterator().hasNext()) {
+            documents.forEach((Block <? super Document>) (doc) -> {
+                CsdnComment c = new CsdnComment();
 
-                    String s = JSON.toJSONString(doc, new ValueFilter() {
-                        @Override
-                        public Object process(Object object, String name, Object value) {
-                            if("_id".equals(name) && value instanceof ObjectId){
-                                return value.toString();
-                            }
-                            return value;
+                String s = JSON.toJSONString(doc, new ValueFilter() {
+                    @Override
+                    public Object process(Object object, String name, Object value) {
+                        if ("_id".equals(name) && value instanceof ObjectId) {
+                            return value.toString();
                         }
-                    });
-
-                    CsdnComment csdnComment = JSON.parseObject(s, CsdnComment.class);
-
-                    commentList.add(csdnComment);
-
+                        return value;
+                    }
                 });
-                break;
-            }else{
-                startVersion ++;
-            }
+                CsdnComment csdnComment = JSON.parseObject(s, CsdnComment.class);
+                commentList.add(csdnComment);
+
+            });
         }
 
+
         if (CollectionUtils.isNotEmpty(commentList)) {
-//            upgradeVersion(commentList,CsdnComment.class);
+            upgradeVersion(commentList,CsdnComment.class);
         }
 
         return commentList;
 
     }
+
+
+    /**
+     * 通用更新版本号
+     * @param objectList
+     * @param objType
+     */
+    public void upgradeVersion(List objectList,Class objType){
+
+        if (CsdnComment.class.equals(objType)) {
+
+            List <org.bson.Document> documentList = new ArrayList <>();
+            List idList = new ArrayList();
+            objectList.forEach((obj)->{
+
+                CsdnComment comment = (CsdnComment)obj;
+//                comment.setVersion(comment.getVersion() + 1);
+//                org.bson.Document doc = new org.bson.Document();
+//                doc.putAll(BeanUtils.copyPropertiesToMap(comment));
+//                documentList.add(doc);
+                idList.add(new ObjectId(comment.get_id()));
+            });
+
+            MongoCollection <org.bson.Document> commentCols = MongoConnector.getCommentCols();
+//            QueryBuilder builder = new QueryBuilder();
+            Bson query = Filters.in("_id", idList);
+//            org.bson.Document queryDoc = new org.bson.Document();
+
+            org.bson.Document updateDoc = new org.bson.Document();
+            updateDoc.put("$inc",new org.bson.Document("version", 1));
+
+            commentCols.updateMany(query, updateDoc);
+
+        }
+
+    }
+
 
     /**
      * 根据文章删除评论

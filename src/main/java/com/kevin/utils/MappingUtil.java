@@ -41,7 +41,7 @@ public class MappingUtil {
                 }
             });
 
-            T m = JSON.parseObject(s, (Class <T>) t.getClass());
+            T m = JSON.parseObject(s, t);
             reseultList.add(m);
 
         });

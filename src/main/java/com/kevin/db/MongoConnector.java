@@ -60,6 +60,10 @@ public class MongoConnector {
     public static final Integer PORT = 27017;
     public static final String HOST = "172.16.2.31";
 
+    public static final String ARTICLE_COLS = "article";
+    public static final String COMMENT_COLS = "comments";
+    public static final String MEMBER_COLS = "member";
+    public static final String CSDN_EXPERT_COLS = "csdn_expert";
 
 //    static Logger logger = LoggerFactory.getLogger("com.mongodb");
     static {
@@ -90,50 +94,8 @@ public class MongoConnector {
 //        list.add("58bfb40110a1fb3d444ece79");
 //        list.add("58bfb40110a1fb3d444ece7a");
 //        list.add("58bfb40110a1fb3d444ece7b");
-//        list.add("58bfb40110a1fb3d444ece7c");
-//        list.add("58bfb40110a1fb3d444ece7d");
-//        list.add("58bfb40110a1fb3d444ece7e");
-//        list.add("58bfb40110a1fb3d444ece7f");
-//        list.add("58bfb40110a1fb3d444ece80");
-//        list.add("58bfb40110a1fb3d444ece81");
-//        list.add("58bfb40110a1fb3d444ece82");
-//        list.add("58bfb40110a1fb3d444ece83");
-//        list.add("58bfb40110a1fb3d444ece84");
-//        list.add("58bfb40110a1fb3d444ece85");
-//        list.add("58bfb40110a1fb3d444ece86");
-//        list.add("58bfb40110a1fb3d444ece87");
-//        list.add("58bfb40110a1fb3d444ece88");
-//        list.add("58bfb40110a1fb3d444ece89");
-//        list.add("58bfb40110a1fb3d444ece8a");
-//        list.add("58bfb40110a1fb3d444ece8b");
-//        list.add("58bfb40110a1fb3d444ece8c");
-//        list.add("58bfb40110a1fb3d444ece8d");
-//        list.add("58bfb40110a1fb3d444ece8e");
-//            list.add("yuanmeng001");
-//            list.add("caimouse");
-//            list.add("FungLeo");
-//            list.add("zhangchen124");
-//            list.add("mydo");
-//            list.add("niubitianping");
-//            list.add("K346K346");
-//            list.add("qfanmingyiq");
-//            list.add("lights_joy");
-//            list.add("SEU_Calvin");
-//            list.add("broadview2006");
-//            list.add("duan_zhihua");
-//            list.add("freewebsys");
-//            list.add("anddlecn");
-//            list.add("jxw167");
-//            list.add("xuexiaodong2009");
-//            list.add("qq924862077");
-//            list.add("ityouknow");
-//            list.add("zhangphil");
-//            list.add("iwanghang");
-//            list.add("Lnho2015");
-//            list.add("Evankaka");
 //            list.add("chszs");
 //            list.add("xiangzhihong8");
-
 //        Document condition = new Document("_id", new Document("$in",list));
 //        Document condition = new Document("username", "FungLeo");
 
@@ -155,10 +117,6 @@ public class MongoConnector {
 
 
 
-    public static final String ARTICLE_COLS = "article";
-    public static final String COMMENT_COLS = "comments";
-    public static final String MEMBER_COLS = "member";
-
 
     public static MongoCollection<Document> getArticleCols(){
         return getCollection(ARTICLE_COLS);
@@ -171,7 +129,9 @@ public class MongoConnector {
     public static MongoCollection<Document> getMemberCols(){
         return getCollection(MEMBER_COLS);
     }
-
+    public static MongoCollection<Document> getCSDNExpertCols(){
+        return getCollection(CSDN_EXPERT_COLS);
+    }
 
     public static MongoCollection<Document> getCollection(String colName){
         MongoClient client = getClient();
@@ -181,6 +141,9 @@ public class MongoConnector {
     }
 
 
+    public static MongoDatabase getDB(){
+        return getDB(DB);
+    }
 
     public static MongoDatabase getDB(String db){
 //        Mongo mongo = new Mongo("localhost", 27017);

@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
  */
 public class CommWebDriver {
 
+
     public static void main(String[] args) {
 
         getCsdnExpertPageCount();
@@ -41,7 +42,8 @@ public class CommWebDriver {
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".page_nav > span")));
             element = driver.findElement(By.cssSelector(".page_nav > span"));
         } catch (Exception e) {
-            return 0;
+            e.printStackTrace();
+            throw new RuntimeException("获取专家博客页数失败");
         }
 
 //        if(driver.findElement(By.cssSelector(".page_nav > span")).isDisplayed()){

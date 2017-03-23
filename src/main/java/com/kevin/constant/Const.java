@@ -15,6 +15,6 @@ public class Const {
     public static final String CSDN_BLOG_LIST_DOMAIN = "http://blog.csdn.net/";
 
 
-    public static final String CSDN_ARTICLE_LIST_PAGE_URL = "http://blog.csdn.net/username/article/list/pageno";
+    public static final String CSDN_ARTICLE_LIST_PAGE_URL = "http://blog.csdn.net/username/article/list/pageNo";
 
 }

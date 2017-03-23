@@ -74,42 +74,7 @@ public class ArticleService {
 
 
 
-    /**
-     * 通用更新版本号
-     * @param objectList
-     * @param objType
-     */
-    public void upgradeVersion(List objectList,Class objType){
 
-        if (CsdnComment.class.equals(objType)) {
-
-            List <org.bson.Document> documentList = new ArrayList <>();
-            List idList = new ArrayList();
-            objectList.forEach((obj)->{
-
-                CsdnComment comment = (CsdnComment)obj;
-//                comment.setVersion(comment.getVersion() + 1);
-//                org.bson.Document doc = new org.bson.Document();
-//                doc.putAll(BeanUtils.copyPropertiesToMap(comment));
-//                documentList.add(doc);
-                idList.add(new ObjectId(comment.get_id()));
-            });
-
-
-            MongoCollection <org.bson.Document> commentCols = MongoConnector.getCommentCols();
-//            QueryBuilder builder = new QueryBuilder();
-            Bson query = Filters.in("_id", idList);
-//            org.bson.Document queryDoc = new org.bson.Document();
-
-
-            org.bson.Document updateDoc = new org.bson.Document();
-            updateDoc.put("$inc",new org.bson.Document("version", 1));
-
-            commentCols.updateMany(query, updateDoc);
-
-        }
-
-    }
 
     /**
      * 获取用户的新文章

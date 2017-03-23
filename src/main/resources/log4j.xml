@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <log4j:configuration>
-    <appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
-        <param name="File" value="${user.dir}/logs/hsl.log"/>
-        <param name="DatePattern" value="'.'yyyy-MM-dd"/>
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} %C %-5p %x - %m%n"/>
-        </layout>
-    </appender>
+
+    <!--<appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">-->
+        <!--<param name="File" value="${user.dir}/logs/hsl.log"/>-->
+        <!--<param name="DatePattern" value="'.'yyyy-MM-dd"/>-->
+        <!--<layout class="org.apache.log4j.PatternLayout">-->
+            <!--<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} %C %-5p %x - %m%n"/>-->
+        <!--</layout>-->
+    <!--</appender>-->
 
     <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.PatternLayout">
@@ -15,7 +16,7 @@
         </layout>
     </appender>
 
-    <appender name="dubboFile" class="org.apache.log4j.DailyRollingFileAppender">
+    <appender name="projectLogFile" class="org.apache.log4j.DailyRollingFileAppender">
         <param name="File" value="${user.dir}/logs/dubbo.log"/>
         <param name="DatePattern" value="'.'yyyy-MM-dd"/>
         <layout class="org.apache.log4j.PatternLayout">
@@ -23,52 +24,22 @@
         </layout>
     </appender>
 
-    <appender name="dubboAccess" class="org.apache.log4j.DailyRollingFileAppender">
-        <param name="File" value="${user.dir}/logs/dubbo-access.log"/>
-        <param name="DatePattern" value="'.'yyyy-MM-dd"/>
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} %C %-5p %x - %m%n"/>
-        </layout>
-    </appender>
-
-    <appender name="elasticIndexFile" class="org.apache.log4j.DailyRollingFileAppender">
-        <param name="File" value="${user.dir}/logs/es-index.log"/>
-        <param name="DatePattern" value="'.'yyyy-MM-dd"/>
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} %C %-5p %x - %m%n"/>
-        </layout>
-    </appender>
 
     <!-- spring 的日志输出级别 -->
     <logger name="org.springframework" additivity="true">
         <level value="INFO"/>
+
     </logger>
 
-    <logger name="org.apache.zookeeper" additivity="false">
-        <level value="ERROR"/>
-        <appender-ref ref="FILE" />
+
+    <logger name="com.kevin" additivity="true">
+        <level value="INFO"/>
     </logger>
 
-    <logger name="org.I0Itec.zkclient" additivity="false">
-        <level value="ERROR"/>
-        <appender-ref ref="FILE" />
-    </logger>
-
-    <logger name="com.alibaba.dubbo" additivity="false">
-        <level value="ERROR"/>
-        <appender-ref ref="dubboFile" />
-    </logger>
-
-    <logger name="dubbo.accesslog" additivity="false">
-        <level value="ERROR" />
-        <appender-ref ref="dubboAccess" />
-    </logger>
-
-    <logger name="es.log" additivity="false">
-        <level value="INFO" />
-        <appender-ref ref="elasticIndexFile" />
-    </logger>
-
+    <!--<logger name="org.apache.zookeeper" additivity="false">-->
+        <!--<level value="ERROR"/>-->
+        <!--<appender-ref ref="FILE" />-->
+    <!--</logger>-->
 
     <!-- 打出Sql配置 -->
     <!-- <category name="java.sql">
@@ -80,9 +51,9 @@
 
     <!-- 根logger的设置 -->
     <root>
-        <priority value="TRACE"/>
+        <priority value="DEBUG"/>
         <appender-ref ref="stdout"/>
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="projectLogFile"/>
     </root>
 
 </log4j:configuration>

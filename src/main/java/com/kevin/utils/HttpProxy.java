@@ -27,6 +27,10 @@ public class HttpProxy {
     // http://proxy.mimvp.com/free.php
     public static Proxy getFreeHttpProxy(){
 
+        Proxy emptyProxy = Proxy.NO_PROXY;
+
+        if(true) return emptyProxy;
+
         String ip = "120.52.72.5";
         Integer port = 80;
         boolean b = TelnetUtil.checkAvaliable(ip, port);

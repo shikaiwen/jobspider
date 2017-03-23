@@ -89,8 +89,9 @@ public class MemberService {
             documentList.add(document);
         }));
 
-
-        MongoConnector.getMemberCols().insertMany(documentList);
+        if (CollectionUtils.isNotEmpty(documentList)) {
+            MongoConnector.getMemberCols().insertMany(documentList);
+        }
         return true;
     }
 
@@ -106,14 +107,10 @@ public class MemberService {
 
 
     public List<BlogMember> getAllExpertBlog(){
-        MongoClient client = MongoConnector.getClient();
 
-        MongoDatabase database = client.getDatabase("test");
-        MongoCollection<Document> csdn_expert = database.getCollection("csdn_expert");
+        MongoCollection<Document> csdn_expert = MongoConnector.getCSDNExpertCols();
 
         BasicBSONObject query = new BasicBSONObject();
-
-
 
         Document bson = new Document();
         FindIterable<Document> documents = csdn_expert.find(bson).limit(3);
@@ -136,17 +133,10 @@ public class MemberService {
      * @return
      */
     public BlogMember getMemberToStartSpider(){
-//        if(true){
-//            BlogMember blogMember = new BlogMember();
-//            blogMember.setAddress("http://blog.csdn.net/yuanmeng001");
-//            blogMember.setAddress("http://blog.csdn.net/huanghm88");
-//            return  blogMember;
-//        }
+
 
         MongoClient client = MongoConnector.getClient();
-
-        MongoDatabase database = client.getDatabase("test");
-        MongoCollection<Document> csdn_expert = database.getCollection("csdn_expert");
+        MongoCollection<Document> csdn_expert = MongoConnector.getCSDNExpertCols();
 
         BasicBSONObject query = new BasicBSONObject();
         query.put("crawlCnt", 0);
@@ -162,10 +152,6 @@ public class MemberService {
         }
 
         return null;
-
-//        for(MongoCursor<Document> iterator = documents.iterator(); iterator.hasNext() ;) {
-//            Document next = iterator.next();
-//        }
 
 
     }

@@ -43,7 +43,7 @@ public class CsdnExpertCrawler implements PageProcessor {
      * 加载所有csdn专家博客并存储到db
      */
     public void loadAllExpertToDB(){
-        int pageCount = 2;//CommWebDriver.getCsdnExpertPageCount();
+        int pageCount = 10;//CommWebDriver.getCsdnExpertPageCount();
         int page = 1;
         String listUrl = "http://blog.csdn.net/peoplelist.html?channelid=0&page=";
 
@@ -54,7 +54,8 @@ public class CsdnExpertCrawler implements PageProcessor {
         }
         spider.addPipeline(new DbPipeline(mapList));
         spider.run();
-        MongoConnector.insertBatch("test", "csdn_expert", mapList);
+
+        MongoConnector.insertBatch(MongoConnector.DB, MongoConnector.CSDN_EXPERT_COLS, mapList);
     }
 
     @Override
@@ -91,15 +92,10 @@ public class CsdnExpertCrawler implements PageProcessor {
             map.put("username", blogHref.substring(blogHref.lastIndexOf("/") + 1));
 
             arrList.add(map);
-
-
 //            this.mapList.add(map);
 
-
-//            System.out.println(JSON.toJSONString(CsdnExpertCrawler.this.mapList));
-
             }
-//        page.putField("list", arrList);
+        page.putField("list", arrList);
 //            mapList
 //        });
 
